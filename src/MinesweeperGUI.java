@@ -6,25 +6,32 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- * Minesweeper GUI using a custom dark theme and smaller icons.
+ * Minesweeper GUI with custom dark theme and small icons.
  */
 public class MinesweeperGUI {
     private final Difficulty difficulty;
     private GameController controller;
-    private final JButton[][] buttons;
+
     private final int rows, cols;
+    private final JButton[][] buttons;
+
     private JFrame frame;
     private JLabel timerLabel;
     private Timer timer;
     private int elapsedSeconds;
 
+    // Custom colors matching the theme
     private final Color BG_DARK = Color.decode("#096B68");
     private final Color BG_TEAL = Color.decode("#129990");
     private final Color BG_MINT = Color.decode("#90D1CA");
     private final Color FG_LIGHT = Color.decode("#FFFBDE");
 
-    private ImageIcon mineIcon, flagIcon;
+    private ImageIcon mineIcon;
+    private ImageIcon flagIcon;
 
+    /**
+     * Constructor initializes variables, loads icons, sets up game and builds UI.
+     */
     public MinesweeperGUI(Difficulty difficulty) {
         this.difficulty = difficulty;
         this.rows = difficulty.getRows();
@@ -36,7 +43,9 @@ public class MinesweeperGUI {
         buildUI();
     }
 
-    // Load and scale icons from relative paths
+    /**
+     * Loads and scales icons from files.
+     */
     private void loadIcons() {
         try {
             Image mine = ImageIO.read(new File("img/mine.png")).getScaledInstance(20, 20, Image.SCALE_SMOOTH);
@@ -48,19 +57,36 @@ public class MinesweeperGUI {
         }
     }
 
-    // Start or restart the game logic
+    /**
+     * Sets up the game controller and resets timer count.
+     */
     private void setupGame() {
         controller = new GameController(difficulty);
         elapsedSeconds = 0;
     }
 
-    // Build the GUI components
+    /**
+     * Builds the GUI components and lays them out.
+     */
     private void buildUI() {
         frame = new JFrame("Minesweeper");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLayout(new BorderLayout());
 
-        // Timer and restart button panel
+        frame.add(createTopPanel(), BorderLayout.NORTH);
+        frame.add(createGridPanel(), BorderLayout.CENTER);
+
+        setupTimer();
+
+        frame.pack();
+        frame.setLocationRelativeTo(null);
+        frame.setVisible(true);
+    }
+
+    /**
+     * Creates the top panel containing the timer and restart button.
+     */
+    private JPanel createTopPanel() {
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.setBackground(BG_DARK);
 
@@ -69,16 +95,20 @@ public class MinesweeperGUI {
         timerLabel.setFont(new Font("Monospaced", Font.BOLD, 16));
         topPanel.add(timerLabel, BorderLayout.WEST);
 
-        JButton restart = new JButton("Restart");
-        restart.setFocusPainted(false);
-        restart.setBackground(BG_MINT);
-        restart.setForeground(Color.BLACK);
-        restart.addActionListener(e -> restartGame());
-        topPanel.add(restart, BorderLayout.EAST);
+        JButton restartBtn = new JButton("Restart");
+        restartBtn.setFocusPainted(false);
+        restartBtn.setBackground(BG_MINT);
+        restartBtn.setForeground(Color.BLACK);
+        restartBtn.addActionListener(e -> restartGame());
+        topPanel.add(restartBtn, BorderLayout.EAST);
 
-        frame.add(topPanel, BorderLayout.NORTH);
+        return topPanel;
+    }
 
-        // Grid panel
+    /**
+     * Creates the grid panel containing buttons representing cells.
+     */
+    private JPanel createGridPanel() {
         JPanel grid = new JPanel(new GridLayout(rows, cols));
         grid.setBackground(BG_DARK);
 
@@ -91,11 +121,14 @@ public class MinesweeperGUI {
                 btn.setFont(new Font("Monospaced", Font.BOLD, 14));
                 btn.setMargin(new Insets(1, 1, 1, 1));
 
-                final int row = r, col = c;
+                final int row = r;
+                final int col = c;
+
                 btn.addMouseListener(new MouseAdapter() {
                     @Override
                     public void mouseClicked(MouseEvent e) {
                         if (controller.isGameOver()) return;
+
                         if (SwingUtilities.isLeftMouseButton(e)) {
                             controller.revealCell(row, col);
                             updateBoard();
@@ -111,25 +144,27 @@ public class MinesweeperGUI {
                 grid.add(btn);
             }
         }
+        return grid;
+    }
 
-        frame.add(grid, BorderLayout.CENTER);
-
-        // Timer logic
+    /**
+     * Sets up the timer that updates the elapsed time every second.
+     */
+    private void setupTimer() {
         timer = new Timer(1000, e -> {
             elapsedSeconds++;
             timerLabel.setText("Time: " + elapsedSeconds);
         });
         timer.start();
-
-        frame.pack();
-        frame.setLocationRelativeTo(null);
-        frame.setVisible(true);
     }
 
-    // Restart the game
+    /**
+     * Restarts the game: resets game logic, timer, and UI buttons.
+     */
     private void restartGame() {
         timer.stop();
         setupGame();
+
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
                 JButton btn = buttons[r][c];
@@ -139,11 +174,15 @@ public class MinesweeperGUI {
                 btn.setEnabled(true);
             }
         }
+
+        elapsedSeconds = 0;
         timerLabel.setText("Time: 0");
         timer.start();
     }
 
-    // Update UI based on board state
+    /**
+     * Updates buttons to reflect the current board state.
+     */
     private void updateBoard() {
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
@@ -155,43 +194,63 @@ public class MinesweeperGUI {
                     btn.setBackground(BG_DARK);
                     if (cell.isMine()) {
                         btn.setIcon(mineIcon);
+                        btn.setText("");
                     } else {
                         int count = cell.getNeighborMines();
                         btn.setText(count > 0 ? String.valueOf(count) : "");
+                        btn.setIcon(null);
                     }
                 } else if (cell.isFlagged()) {
                     btn.setIcon(flagIcon);
+                    btn.setText("");
                 } else {
                     btn.setIcon(null);
                     btn.setText("");
+                    btn.setEnabled(true);
+                    btn.setBackground(BG_TEAL);
                 }
             }
         }
     }
 
-    // Show result dialog
+    /**
+     * Shows a message dialog indicating whether the player won or lost.
+     */
     private void showResult() {
         timer.stop();
-        String msg = controller.isGameWon() ? "You won!" : "You hit a mine!";
-        JOptionPane.showMessageDialog(frame, msg);
+        String message = controller.isGameWon() ? "You won!" : "You hit a mine!";
+        JOptionPane.showMessageDialog(frame, message);
     }
 
-    // Show difficulty selector on launch
+    /**
+     * Shows the difficulty selector dialog and starts the game.
+     */
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            Difficulty diff = showDifficultyDialog();
-            if (diff != null) new MinesweeperGUI(diff);
+            Difficulty difficulty = showDifficultyDialog();
+            if (difficulty != null) {
+                new MinesweeperGUI(difficulty);
+            }
         });
     }
 
-    // Dialog to choose difficulty
+    /**
+     * Displays a dialog for the player to select difficulty.
+     * 
+     * @return The selected difficulty or null if canceled.
+     */
     private static Difficulty showDifficultyDialog() {
         Difficulty[] options = Difficulty.values();
         String[] names = new String[options.length];
-        for (int i = 0; i < options.length; i++) names[i] = options[i].name();
+
+        for (int i = 0; i < options.length; i++) {
+            names[i] = options[i].name();
+        }
+
         String choice = (String) JOptionPane.showInputDialog(null,
                 "Select Difficulty:", "Minesweeper",
                 JOptionPane.PLAIN_MESSAGE, null, names, names[0]);
+
         return choice != null ? Difficulty.valueOf(choice) : null;
     }
 }

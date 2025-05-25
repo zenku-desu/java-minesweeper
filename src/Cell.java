@@ -1,93 +1,82 @@
-    /**
-     * Represents a single cell on the Minesweeper board.
-     * Each cell can be a mine or empty, can be revealed or hidden,
-     * and can be flagged by the player.
-     */
-
+/**
+ * Represents a single cell on the Minesweeper board.
+ * Holds state information like whether it's a mine,
+ * if it’s revealed, flagged, and how many neighboring mines it has.
+ */
 public class Cell {
-    private int neighborMines;
+    private boolean isMine;
     private boolean isRevealed;
     private boolean isFlagged;
-    private boolean isMine;
+    private int neighborMines;
 
     /**
-     * Constructor initializes the cell as empty, unrevealed, and unflagged.
+     * Creates an empty cell without a mine, hidden and unflagged.
      */
-
     public Cell() {
-        this.neighborMines = 0;
+        this.isMine = false;
         this.isRevealed = false;
         this.isFlagged = false;
-        this.isMine = false;
+        this.neighborMines = 0;
     }
 
     /**
-     * Checks if this cell contains a mine.
-     * @return true if cell is a mine, false otherwise.
+     * Marks this cell as a mine.
      */
-
-    public boolean isMine() {
-        return isMine;
-    }
-
-    /**
-     * Checks if this cell is flagged by the player.
-     * @return true if flagged, false otherwise.
-     */
-
-    public boolean isFlagged() {
-        return isFlagged;
-    }
-
-    /**
-     * Checks if this cell has been revealed.
-     * @return true if revealed, false otherwise.
-     */
-
-    public boolean isRevealed() {
-        return isRevealed;
-    }
-
-    /**
-     * Reveals the cell, showing its contents (mine or number).
-     */
-
-    public void reveal() {
-        this.isRevealed = true;
-    }
-
-    /**
-     * Sets this cell to contain a mine.
-     */
-
     public void setMine() {
         this.isMine = true;
     }
 
     /**
-     * Toggles the flagged status of this cell.
-     * Flags are used to mark suspected mines.
+     * Reveals this cell.
      */
+    public void reveal() {
+        this.isRevealed = true;
+    }
 
+    /**
+     * Toggles the flagged status of this cell.
+     * Flagging marks a cell as suspected to contain a mine.
+     */
     public void toggleFlag() {
         this.isFlagged = !this.isFlagged;
     }
 
-    /**
-     * Sets the count of mines in neighboring cells.
-     * @param count Number of neighboring mines.
-     */
+    // Getters
 
-    public void setNeighborMines(int count) {
-        this.neighborMines = count;
+    /**
+     * Checks if this cell contains a mine.
+     */
+    public boolean isMine() {
+        return isMine;
     }
 
     /**
-     * Gets the number of neighboring mines.
-     * @return Count of neighboring mines.
+     * Checks if this cell has been revealed.
      */
+    public boolean isRevealed() {
+        return isRevealed;
+    }
 
+    /**
+     * Checks if this cell is flagged.
+     */
+    public boolean isFlagged() {
+        return isFlagged;
+    }
+
+    /**
+     * Returns the count of neighboring mines.
+     */
     public int getNeighborMines() {
         return neighborMines;
+    }
+
+    /**
+     * Sets the count of neighboring mines for this cell.
+     * 
+     * @param count Number of neighboring mines.
+     */
+    public void setNeighborMines(int count) {
+        this.neighborMines = count;
     }
 }
